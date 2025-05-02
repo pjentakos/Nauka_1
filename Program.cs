@@ -2,6 +2,7 @@
 using SqlLite_TEST.ApplicationController;
 using SqlLite_TEST.ApplicationController.Models;
 using SqlLite_TEST.DatabaseControler;
+using SqlLite_TEST.LogController;
 
 namespace SqlLite_TEST
 {
@@ -9,40 +10,42 @@ namespace SqlLite_TEST
     {
         static void Main(string[] args)
         {
-            //var connectionString = @"Data Source=C:\Users\lpie\source\repos\\SqlLite TEST\db.db";
-
-            //using (var conn = new SqliteConnection(connectionString))
-            //{
-            //    conn.Open();
-
-            //    var cmd = conn.CreateCommand();
-
-            //}
-
-            //Utworzenie folderow i wrzucenie resoure:
-            User u = new();
-            u.FristName = "Eldoka";
-            u.LastName = "Nawolno";
-            u.Mail = "eldoka@nawolno.com";
-            u.Login = "Eldo";
-            u.Password = "NaWolno";
-            u.PasswordSalt = "1213566";
-            u.AccessLevel = 1;
-
-
+            Log.Add("Main", "Aplikacja uruchomiona");
             Application app = new();
-            app.CreateUser(u);
+
+            string login = "pjntk";
+            string haslo = "Test";
+
+            if(app.Authorization(login, haslo))
+            {
+                //User curentUser
+
+                //User u = new();
+                //u.FristName = "Eldoka";
+                //u.LastName = "Nawolno";
+                //u.Mail = "eldoka@nawolno.com";
+                //u.Login = "Eldo";
+                //u.Password = "NaWolno";
+                //u.PasswordSalt = "1213566";
+                //u.AccessLevel = 1;
+
+                //u.Create();
 
 
-            Database db = new();
-            Console.WriteLine(db.Test().ToString());
+                //User u1 = new("id = 1");
 
+                //User u2 = new();
+                //u.FristName = "Eldoka";
+                //u.LastName = "Nawolno";
+                //u.Mail = "eldoka@nawolno.com";
+                //u2.Login = "Eldo";
+                //u2.Password = "NaWolno";
+                //u2.PasswordSalt = "1213566";
+                //u2.AccessLevel = 1;
+
+                //u2.Create();
+            }
             
-            
-
-
-            
-
 
 
         }

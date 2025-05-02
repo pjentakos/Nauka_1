@@ -1,6 +1,8 @@
 ﻿using System.Data;
 using SqlLite_TEST.Configuration;
 using Microsoft.Data.Sqlite;
+using Dapper;
+using SqlLite_TEST.LogController;
 
 namespace SqlLite_TEST.DatabaseControler
 {
@@ -13,7 +15,7 @@ namespace SqlLite_TEST.DatabaseControler
         {
             connString = $"Data Source={Config.DatabasePath}";
             conn = new SqliteConnection(connString);
-            conn.Open();
+            this.Open();
             
         }
         
@@ -22,26 +24,52 @@ namespace SqlLite_TEST.DatabaseControler
             if (conn.State != ConnectionState.Open)
             {
                 conn.Open();
+                Log.Add(this, "Połączenie z bazą danych");
             }
         }
 
         public bool HasData (string sql)
         {
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
-
-            using (var r = cmd.ExecuteReader())
+            
+            using (var cmd = conn.CreateCommand())
             {
-                return r.HasRows;
+                cmd.CommandText = sql;
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    return r.HasRows;
+                }
             }
         }
 
-        public void Execute(string sql)
+        private void Execute(string sql)
         {
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+            }
+        }
 
-            cmd.ExecuteNonQuery();
+        public int Insert(string sql)
+        {
+            this.Execute(sql);
+
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT last_insert_rowid();";
+
+                using (var r = cmd.ExecuteReader())
+                {
+                    while (r.Read())
+                    {
+                        return r.GetInt32(0);
+                        this.Close();
+                    }
+
+                    return -1;
+                }
+            }
         }
 
         public DataTable GetTable(string sql)
@@ -59,17 +87,20 @@ namespace SqlLite_TEST.DatabaseControler
             return dt;
         }
 
-        public object GetField(string tableName, string fieldName, params )
-
-
-        public object Test()
+        public object GetField(string tableName, string fieldName, string sqlWhere)
         {
-            DataTable dt = this.GetTable("SELECT first_name from USERS WHERE id = 2");
+            string sql = $"SELECT {fieldName} FROM {tableName} WHERE {sqlWhere} LIMIT 1";
 
+            DataTable dt = this.GetTable(sql);
 
-            return dt.Rows[0]["first_name"].ToString();
+            return dt.Rows[0][fieldName].ToString();
+        }
 
+        public T GetModel<T>(string tableName, string sqlWhere)
+        {
+            string sql = $"SELECT * FROM {tableName} WHERE {sqlWhere} LIMIT 1";
 
+            return conn.QuerySingleOrDefault<T>(sql);
         }
 
         public void Close()
@@ -77,6 +108,7 @@ namespace SqlLite_TEST.DatabaseControler
             if (conn.State == ConnectionState.Open)
             {
                 conn.Close();
+                Log.Add(this, "Zamknięcie połączenia z bazą danych");
             }
         }
 
