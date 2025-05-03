@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using SqlLite_TEST.DatabaseControler;
 using SqlLite_TEST.LogController;
 using SqlLite_TEST.ApplicationController;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 namespace SqlLite_TEST.ApplicationController.Models
 {
-    internal record User
+    public record User
     {
         public int Id { get; private set; }
         public string FirstName { get; set; }
@@ -23,7 +25,9 @@ namespace SqlLite_TEST.ApplicationController.Models
                 (this.PasswordHash, this.PasswordSalt) = ApplicationController.Password.HashPassword(value);
             }
         }
+        [JsonIgnore]
         public string PasswordHash { get; private set; }
+        [JsonIgnore]
         public string PasswordSalt { get; private set; }
         public int AccessLevel { get; set; }
 
@@ -115,10 +119,5 @@ namespace SqlLite_TEST.ApplicationController.Models
                 
             }
         }
-
-
-
-
-
     }
 }

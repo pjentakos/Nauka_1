@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Http;
 using SqlLite_TEST.ApiContoller;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SqlLite_TEST
 {
@@ -23,6 +24,7 @@ namespace SqlLite_TEST
 
             //Swagger
             var swagger = WebApplication.CreateBuilder(args);
+            swagger.Services.AddControllers();
 
             // Dodanie usług Swaggera i obsługi API
             swagger.Services.AddEndpointsApiExplorer();
@@ -33,12 +35,6 @@ namespace SqlLite_TEST
                     Title = "System Test",
                     Version = "v1",
                     Description = "API do obsługi System Test",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Łukasz",
-                        Email = "lpietak@outlook.com",
-                        Url = new Uri("https://onet.pl")
-                    }
                 });
             });
 
@@ -51,48 +47,55 @@ namespace SqlLite_TEST
                 api.UseSwaggerUI(); // Interaktywny interfejs Swaggera
             }
 
-            
-            api.MapGet("/User", (string name, HttpRequest r) =>
-            {
+            api.UseHttpsRedirection();
+            api.UseRouting();
+            api.MapControllers();
+
+     
+
+            //api.MapGet("/User", (string name, HttpRequest r) =>
+            //{
                 
-                if (!ApiHelper.IsAuthorized(r))
-                {
-                    return Results.Unauthorized();
-                }
+            //    if (!ApiHelper.IsAuthorized(r))
+            //    {
+            //        return Results.Unauthorized();
+            //    }
 
-                User u = new($"login = '{name}'");
+            //    User u = new($"login = '{name}'");
 
-                if (u.Id == 0)
-                {
-                    return Results.NotFound(u);
-                }
-                else
-                {
-                    return Results.Ok(u);
-                }
+            //    if (u.Id == 0)
+            //    {
+            //        return Results.NotFound(u);
+            //    }
+            //    else
+            //    {
+            //        return Results.Ok(u);
+            //    }
 
                     
-            });
-
-            api.MapPost("/User", (HttpRequest r, User u) =>
-            {
-                if (!ApiHelper.IsAuthorized(r))
-                {
-                    return Results.Unauthorized();
-                }
-
-                u.Create();
-
-                return Results.Ok(u);
-            })
-                .WithName("Dodaj użytkownika");
+            //});
 
 
-            //api.MapGet("/api/hello", () => "Hello from API!")
-            //    .WithName("HelloEndpoint");
+           
+            //api.MapPost("/User", (HttpRequest r, User u) =>
+            //{
+            //    if (!ApiHelper.IsAuthorized(r))
+            //    {
+            //        return Results.Unauthorized();
+            //    }
 
-            api.MapPost("/api/greet", (string name) => $"Hello, {name}!")
-                .WithName("GreetUser");
+            //    u.Create();
+
+            //    return Results.Ok(u);
+            //})
+            //    .WithName("Dodaj użytkownika");
+
+
+            ////api.MapGet("/api/hello", () => "Hello from API!")
+            ////    .WithName("HelloEndpoint");
+
+            //api.MapPost("/api/greet", (string name) => $"Hello, {name}!")
+            //    .WithName("GreetUser");
 
             api.Run();
 
