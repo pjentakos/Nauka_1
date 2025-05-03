@@ -3,6 +3,13 @@ using SqlLite_TEST.ApplicationController;
 using SqlLite_TEST.ApplicationController.Models;
 using SqlLite_TEST.DatabaseControler;
 using SqlLite_TEST.LogController;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Http;
+using SqlLite_TEST.ApiContoller;
 
 namespace SqlLite_TEST
 {
@@ -10,42 +17,85 @@ namespace SqlLite_TEST
     {
         static void Main(string[] args)
         {
-            Log.Add("Main", "Aplikacja uruchomiona");
+            // Utworzenie wymaganych elementow do mojej aplikacji
             Application app = new();
+            app.Init();
 
-            string login = "pjntk";
-            string haslo = "Test";
+            //Swagger
+            var swagger = WebApplication.CreateBuilder(args);
 
-            if(app.Authorization(login, haslo))
+            // Dodanie usług Swaggera i obsługi API
+            swagger.Services.AddEndpointsApiExplorer();
+            swagger.Services.AddSwaggerGen(options =>
             {
-                //User curentUser
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "System Test",
+                    Version = "v1",
+                    Description = "API do obsługi System Test",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Łukasz",
+                        Email = "lpietak@outlook.com",
+                        Url = new Uri("https://onet.pl")
+                    }
+                });
+            });
 
-                //User u = new();
-                //u.FristName = "Eldoka";
-                //u.LastName = "Nawolno";
-                //u.Mail = "eldoka@nawolno.com";
-                //u.Login = "Eldo";
-                //u.Password = "NaWolno";
-                //u.PasswordSalt = "1213566";
-                //u.AccessLevel = 1;
+            var api = swagger.Build();
 
-                //u.Create();
-
-
-                //User u1 = new("id = 1");
-
-                //User u2 = new();
-                //u.FristName = "Eldoka";
-                //u.LastName = "Nawolno";
-                //u.Mail = "eldoka@nawolno.com";
-                //u2.Login = "Eldo";
-                //u2.Password = "NaWolno";
-                //u2.PasswordSalt = "1213566";
-                //u2.AccessLevel = 1;
-
-                //u2.Create();
+            // Włączenie Swaggera w środowisku deweloperskim
+            if (api.Environment.IsDevelopment() || 1==1)
+            {
+                api.UseSwagger(); // Generowanie dokumentacji
+                api.UseSwaggerUI(); // Interaktywny interfejs Swaggera
             }
+
             
+            api.MapGet("/User", (string name, HttpRequest r) =>
+            {
+                
+                if (!ApiHelper.IsAuthorized(r))
+                {
+                    return Results.Unauthorized();
+                }
+
+                User u = new($"login = '{name}'");
+
+                if (u.Id == 0)
+                {
+                    return Results.NotFound(u);
+                }
+                else
+                {
+                    return Results.Ok(u);
+                }
+
+                    
+            });
+
+            api.MapPost("/User", (HttpRequest r, User u) =>
+            {
+                if (!ApiHelper.IsAuthorized(r))
+                {
+                    return Results.Unauthorized();
+                }
+
+                u.Create();
+
+                return Results.Ok(u);
+            })
+                .WithName("Dodaj użytkownika");
+
+
+            //api.MapGet("/api/hello", () => "Hello from API!")
+            //    .WithName("HelloEndpoint");
+
+            api.MapPost("/api/greet", (string name) => $"Hello, {name}!")
+                .WithName("GreetUser");
+
+            api.Run();
+
 
 
         }

@@ -51,6 +51,12 @@ namespace SqlLite_TEST.DatabaseControler
             }
         }
 
+
+        public void Update(string sql)
+        {
+            this.Execute(sql);
+        }
+
         public int Insert(string sql)
         {
             this.Execute(sql);
